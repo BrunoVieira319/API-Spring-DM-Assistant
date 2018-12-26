@@ -1,5 +1,10 @@
 package br.com.assist.service;
 
-public class ServiceException {
+public class ServiceException extends RuntimeException{
 
+	private static final long serialVersionUID = 4244881451243023367L;
+
+	public ServiceException(String mensagem) {
+		super(mensagem);
+	}
 }

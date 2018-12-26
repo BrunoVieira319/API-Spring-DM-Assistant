@@ -1,74 +1,102 @@
 package br.com.assist.domain;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.PositiveOrZero;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 @Entity
 public class HabilidadePersonagem extends BaseDominio {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "habilidade_personagem_id")
 	private Integer id;
 
 	@NotNull
-	@Size(min = 0)
+	@ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+	@JoinColumn(name = "habilidade_id")
+	private Habilidade habilidade;
+
+	@NotNull
+	@PositiveOrZero
 	private int qtdUsosMaximo;
 
 	@NotNull
-	@Size(min = 0)
+	@PositiveOrZero
 	private int qtdUsosRestantes;
-	
+
 	@NotNull
 	@Enumerated(EnumType.STRING)
-	private Descanso descanso;
-	
+	private Recuperacao recuperacao;
+
 	@SuppressWarnings("unused")
 	private HabilidadePersonagem() {
 	}
 
-	public HabilidadePersonagem(int qtdUsosMaximos, Descanso descanso) {
+	HabilidadePersonagem(Habilidade habilidade, int qtdUsosMaximos, Recuperacao recuperacao) {
+		this.habilidade = habilidade;
 		this.qtdUsosMaximo = qtdUsosMaximos;
 		this.qtdUsosRestantes = qtdUsosMaximos;
-		this.descanso = descanso;
+		this.recuperacao = recuperacao;
 		validarDominio();
 	}
 
-	public int getQtdUsosMaximo() {
-		return qtdUsosMaximo;
-	}
-
-	public void setQtdUsosMaximo(int qtdUsosMaximo) {
-		this.qtdUsosMaximo = qtdUsosMaximo;
-	}
-
-	public int getQtdUsosRestantes() {
-		return qtdUsosRestantes;
-	}
-	
-	public Descanso getDescanso() {
-		return descanso;
-	}
-
-	public void setDescanso(Descanso descanso) {
-		this.descanso = descanso;
-	}
-
-	public void usarHabilidade() {
+	void usarHabilidade() {
 		if (qtdUsosRestantes > 0) {
-			this.qtdUsosRestantes -= 1;
+			qtdUsosRestantes -= 1;
 		}
 	}
 
-	public void restaurarUsos() {
-		this.qtdUsosRestantes = this.qtdUsosMaximo;
+	void restaurarUsos() {
+		qtdUsosRestantes = qtdUsosMaximo;
+	}
+
+	Integer getId() {
+		return id;
+	}
+
+	int getQtdUsosMaximo() {
+		return qtdUsosMaximo;
+	}
+
+	int getQtdUsosRestantes() {
+		return qtdUsosRestantes;
+	}
+
+	Recuperacao getRecuperacao() {
+		return recuperacao;
+	}
+
+	public Habilidade getHabilidade() {
+		return habilidade;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((habilidade == null) ? 0 : habilidade.hashCode());
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
+			return true;
+		}
+		HabilidadePersonagem alvoComparacao = (HabilidadePersonagem) obj;
+		return new EqualsBuilder().append(id, alvoComparacao.getId()).append(habilidade, alvoComparacao.getHabilidade())
+				.build();
 	}
 
 }
