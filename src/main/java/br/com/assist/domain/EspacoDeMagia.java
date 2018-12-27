@@ -47,13 +47,6 @@ public class EspacoDeMagia extends BaseDominio {
 		if (quantidade > 0) {
 			quantidade -= 1;
 		}
-
-		// try {
-		// quantidade -= 1;
-		// validarDominio();
-		// } catch (DominioInvalidoException e) {
-		// quantidade = 0;
-		// }
 	}
 
 	public void restauraUmEspaco() {

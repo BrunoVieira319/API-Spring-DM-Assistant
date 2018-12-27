@@ -15,7 +15,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.assist.domain.Personagem;
+import br.com.assist.dto.HabilidadeDto;
+import br.com.assist.dto.PersonagemDetalhesDto;
+import br.com.assist.dto.PersonagemDto;
+import br.com.assist.dto.PersonagemHomePageDto;
 import br.com.assist.service.PersonagemService;
 
 @RestController
@@ -25,17 +28,30 @@ public class PersonagemController {
 	@Autowired
 	private PersonagemService service;
 
-	@GetMapping(value = "/")
-	public ResponseEntity<List<Personagem>> buscarTodosPersonagens() {
-		return new ResponseEntity<List<Personagem>>(service.listarTodos(), HttpStatus.OK);
+	@GetMapping
+	public ResponseEntity<List<PersonagemHomePageDto>> buscarTodosPersonagens() {
+		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
+		return new ResponseEntity<List<PersonagemHomePageDto>>(personagens, HttpStatus.OK);
+	}
+	
+	@GetMapping(value = "/{id}/detalhes")
+	public ResponseEntity<PersonagemDetalhesDto> buscarPersonagem(@PathVariable("id") Integer id) {
+		PersonagemDetalhesDto personagem = service.buscarPorId(id);
+		return new ResponseEntity<PersonagemDetalhesDto>(personagem, HttpStatus.OK);
 	}
 
-	@PostMapping(value = "/")
-	public ResponseEntity<?> salvar(@RequestBody @Valid Personagem personagem) {
-		service.salvar(personagem);
+	@PostMapping
+	public ResponseEntity<?> salvar(@RequestBody @Valid PersonagemDto personagemDto) {
+		service.salvar(personagemDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	@PostMapping("/{id}/habilidade")
+	public ResponseEntity<?> salvar(@RequestBody HabilidadeDto habilidadeDto, @PathVariable("id") Integer id) {
+		service.salvarHabilidadeParaPersonagem(id, habilidadeDto);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
 	@DeleteMapping(value = "/{id}")
 	public ResponseEntity<?> removerPersonagem(@PathVariable("id") Integer id) {
 		service.deletarPorId(id);

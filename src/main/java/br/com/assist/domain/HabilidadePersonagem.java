@@ -64,15 +64,15 @@ public class HabilidadePersonagem extends BaseDominio {
 		return id;
 	}
 
-	int getQtdUsosMaximo() {
+	public int getQtdUsosMaximo() {
 		return qtdUsosMaximo;
 	}
 
-	int getQtdUsosRestantes() {
+	public int getQtdUsosRestantes() {
 		return qtdUsosRestantes;
 	}
 
-	Recuperacao getRecuperacao() {
+	public Recuperacao getRecuperacao() {
 		return recuperacao;
 	}
 
