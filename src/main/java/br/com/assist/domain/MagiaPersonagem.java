@@ -11,11 +11,11 @@ public class MagiaPersonagem extends BaseDominio {
 	private Magia magia;
 
 	@NotNull
-	private boolean preaparada;
+	private boolean preparada;
 
-	public MagiaPersonagem(Magia magia, boolean preparada) {
+	public MagiaPersonagem(Magia magia) {
 		this.magia = magia;
-		preaparada = preparada;
+		this.preparada = false;
 		validarDominio();
 	}
 }

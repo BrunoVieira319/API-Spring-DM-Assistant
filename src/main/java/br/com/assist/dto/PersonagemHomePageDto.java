@@ -1,7 +1,5 @@
 package br.com.assist.dto;
 
-import br.com.assist.domain.Raca;
-
 public class PersonagemHomePageDto {
 
 	private Integer id;
@@ -17,6 +15,8 @@ public class PersonagemHomePageDto {
 	private int vidaMax;
 
 	private int vidaAtual;
+	
+	private String img;
 
 	public Integer getId() {
 		return id;
@@ -74,4 +74,11 @@ public class PersonagemHomePageDto {
 		this.vidaAtual = vidaAtual;
 	}
 	
+	public String getImg() {
+		return img;
+	}
+	
+	public void setImg(String img) {
+		this.img = img;
+	}
 }

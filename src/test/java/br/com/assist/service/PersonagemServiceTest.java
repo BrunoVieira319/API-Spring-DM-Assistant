@@ -11,15 +11,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 import br.com.assist.domain.Classe;
+import br.com.assist.domain.EspacoDeMagia;
 import br.com.assist.domain.Recuperacao;
+import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
-import br.com.assist.domain.Habilidade;
-import br.com.assist.domain.Personagem;
+import br.com.assist.dto.PersonagemHomePageDto;
+import br.com.assist.domain.HabilidadePersonagem;
 import br.com.assist.domain.Raca;
 
 @RunWith(SpringRunner.class)
@@ -28,8 +29,10 @@ public class PersonagemServiceTest {
 
 	@Autowired
 	private PersonagemService service;
-	
+
 	private PersonagemDto personagem;
+	
+	private HabilidadeDto habilidadeDto;
 
 	@Before
 	public void criarUmPersonagem() {
@@ -40,6 +43,12 @@ public class PersonagemServiceTest {
 		personagem.setRaca(Raca.MEIO_ORC);
 		personagem.setClasse(Classe.BRUXO);
 		personagem.setImg("Imagem");
+		
+		habilidadeDto = new HabilidadeDto();
+		habilidadeDto.setNome("Invocações Místicas");
+		habilidadeDto.setDescricao("Descrição");
+		habilidadeDto.setQtdUsosMaximo(2);
+		habilidadeDto.setRecuperacao(Recuperacao.DESCANSO_CURTO);
 	}
 
 	@After
@@ -51,11 +60,11 @@ public class PersonagemServiceTest {
 	public void salvarPersonagem() {
 		service.salvar(personagem);
 
-		List<Personagem> personagens = service.listarTodos();
-		
+		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
+
 		assertEquals(1, personagens.size());
-		
-		Personagem personagemNaBase = personagens.get(0);
+
+		PersonagemHomePageDto personagemNaBase = personagens.get(0);
 
 		assertEquals("Angor Rot", personagemNaBase.getNome());
 		assertEquals(1, personagemNaBase.getNivel());
@@ -64,6 +73,17 @@ public class PersonagemServiceTest {
 		assertEquals(Raca.MEIO_ORC, personagemNaBase.getRaca());
 		assertEquals(Classe.BRUXO, personagemNaBase.getClasse());
 		assertEquals("Imagem", personagemNaBase.getImg());
+	}
+
+	@Test
+	public void buscarPersonagemPorId() {
+		service.salvar(personagem);
+
+		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+
+		PersonagemDetalhesDto personagemEncontrado = service.buscarPorId(idPersonagemNaBase);
+
+		assertEquals("Angor Rot", personagemEncontrado.getNome());
 	}
 
 	@Test
@@ -79,7 +99,7 @@ public class PersonagemServiceTest {
 		service.salvar(personagem);
 		service.salvar(personagem2);
 
-		List<Personagem> personagens = service.listarTodos();
+		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
 
 		assertEquals(2, personagens.size());
 	}
@@ -87,75 +107,94 @@ public class PersonagemServiceTest {
 	@Test
 	public void adicionarHabilidadeParaPersonagem() {
 		service.salvar(personagem);
-		
-		assertEquals(1, service.listarTodos().size());
-		
-		Integer idPersonagemNaBase = service.listarTodos().get(0).getId();
-		
-		HabilidadeDto hDto = new HabilidadeDto();
-		hDto.setNome("Invocações Místicas");
-		hDto.setDescricao("Descrição");
-		hDto.setQtdUsosMaximo(0);
-		hDto.setRecuperacao(Recuperacao.SEM_LIMITE);
 
-		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, hDto);
+		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+
+		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, habilidadeDto);
+
+		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		HabilidadePersonagem habilidadePersonagem = personagemNaBase.getHabilidades().get(0);
+
+		assertEquals(2, habilidadePersonagem.getQtdUsosMaximo());
+		assertEquals(2, habilidadePersonagem.getQtdUsosRestantes());
+		assertEquals("Invocações Místicas", habilidadePersonagem.getHabilidade().getNome());
+		assertEquals("Descrição", habilidadePersonagem.getHabilidade().getDescricao());
+		assertEquals(Recuperacao.DESCANSO_CURTO, habilidadePersonagem.getRecuperacao());
+	}
+
+	@Test
+	public void adicionarEspacoDeMagiaParaPersonagem() {
+		service.salvar(personagem);
+		
+		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+
+		EspacoDeMagiaDto espacoDto = new EspacoDeMagiaDto();
+		espacoDto.setNivel(1);
+		espacoDto.setQuantidadeMaxima(2);
+		
+		service.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, espacoDto);
 		
 		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+
+		EspacoDeMagia espaco = personagemNaBase.getEspacosDeMagia().get(0);
 		
-		assertEquals(0, personagemNaBase.getHabilidades().get(0).getQtdUsosMaximo());
+		assertEquals(1, personagemNaBase.getEspacosDeMagia().size());
+		assertEquals(1, espaco.getNivel());
+		assertEquals(2, espaco.getQuantidadeMaxima());
+		assertEquals(2, espaco.getQuantidade());
+	}
+
+	@Test
+	public void usarHabilidade() {
+		service.salvar(personagem);
+
+		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		
+		service.salvarHabilidadeParaPersonagem(personagemNaBase.getId(), habilidadeDto);
+		
+		personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		
+		HabilidadePersonagem habilidadePersonagem = personagemNaBase.getHabilidades().get(0);
+				
+		service.usarHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
+		personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		
+		assertEquals(1, personagemNaBase.getHabilidades().get(0).getQtdUsosRestantes());
 	}
 	
 	@Test
-	public void buscarPersonagemPorId() {
+	public void deletarPersonagemPorId() {
 		service.salvar(personagem);
 
-		List<Personagem> personagens = service.listarTodos();
-		
-		assertEquals(1, personagens.size());
-		
-		Personagem personagemNaBase = personagens.get(0);
-		PersonagemDetalhesDto personagemEncontrado = service.buscarPorId(personagemNaBase.getId());
+		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
 
-		assertEquals("Angor Rot", personagemEncontrado.getNome());
+		service.deletarPorId(idPersonagemNaBase);
+
+		assertEquals(0, service.buscarTodosPersonagens().size());
 	}
-	
-	// @Test(expected = ServiceException.class)
-	// public void deletarPersonagemPorId() {
-	// Personagem personagem = new Personagem("Angor Rot", 1, 10, Raca.MEIO_ORC,
-	// Classe.BRUXO, "Imagem");
-	// service.salvar(personagem);
-	//
-	// Personagem personagemEncontrado = service.buscarPorNome("Angor Rot");
-	//
-	// service.deletarPorId(personagemEncontrado.getId());
-	//
-	// service.buscarPorId(personagemEncontrado.getId());
-	// }
-	//
-	// @Test
-	// public void deletarTodosPersonagens() {
-	// Personagem personagem1 = new Personagem("Angor Rot", 1, 10, Raca.MEIO_ORC,
-	// Classe.BRUXO, "Imagem");
-	// Personagem personagem2 = new Personagem("Jorge Glaerd", 1, 10,
-	// Raca.MEIO_ELFO, Classe.BARDO, "Imagem");
-	//
-	// service.salvar(personagem1);
-	// service.salvar(personagem2);
-	//
-	// service.deletarTudo();
-	//
-	// List<Personagem> personagens = service.listarTodos();
-	//
-	// assertEquals(0, personagens.size());
-	// }
-	//
-	// @Test(expected = ServiceException.class)
-	// public void buscarPersonagemNaoExistentePorId() {
-	// service.buscarPorId(1);
-	// }
-	//
-	// @Test(expected = ServiceException.class)
-	// public void buscarPersonagemNaoExistentePorNome() {
-	// service.buscarPorNome("Angor Rot");
-	// }
+
+	@Test
+	public void deletarTodosPersonagens() {
+		PersonagemDto personagem2 = new PersonagemDto();
+		personagem2.setNome("Jorge Glaerd");
+		personagem2.setNivel(1);
+		personagem2.setVidaMax(10);
+		personagem2.setRaca(Raca.MEIO_ELFO);
+		personagem2.setClasse(Classe.BARDO);
+		personagem2.setImg("Imagem");
+
+		service.salvar(personagem);
+		service.salvar(personagem2);
+
+		service.deletarTudo();
+
+		assertEquals(0, service.buscarTodosPersonagens().size());
+	}
+
+	@Test(expected = ServiceException.class)
+	public void buscarPersonagemNaoExistentePorId() {
+		service.buscarPorId(1);
+	}
+
 }

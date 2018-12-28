@@ -24,8 +24,6 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 
 @Entity
 public class Personagem extends BaseDominio {
@@ -130,16 +128,16 @@ public class Personagem extends BaseDominio {
 		espacosDeMagia.add(new EspacoDeMagia(nivel, qtdEspacos));
 	}
 
-	public void usarHabilidade(Habilidade habilidade) {
-		getHabilidadePersonagem(habilidade).usarHabilidade();
+	public void usarHabilidade(Integer idHabilidade) {
+		getHabilidadePersonagem(idHabilidade).usarHabilidade();
 	}
 
 	public void conjurarMagia(int nivel) {
 		getEspacoDeMagia(nivel).usarEspaco();
 	}
 
-	public void restaurarUsosHabilidade(Habilidade habilidade) {
-		getHabilidadePersonagem(habilidade).restaurarUsos();
+	public void restaurarUsosHabilidade(Integer idHabilidade) {
+		getHabilidadePersonagem(idHabilidade).restaurarUsos();
 	}
 
 	public void restaurarEspacoDeMagia(int nivel) {
@@ -167,6 +165,15 @@ public class Personagem extends BaseDominio {
 		throw new DominioInvalidoException("Habilidade não encontrada para personagem");
 	}
 
+	private HabilidadePersonagem getHabilidadePersonagem(Integer idHabilidade) {
+		Optional<HabilidadePersonagem> habilidadePersonagem = habilidades.stream()
+				.filter(h -> h.getHabilidade().getId() == idHabilidade).findFirst();
+		if (habilidadePersonagem.isPresent()) {
+			return habilidadePersonagem.get();
+		}
+		throw new DominioInvalidoException("Habilidade não encontrada para personagem");
+	}
+	
 	public EspacoDeMagia getEspacoDeMagia(int nivel) {
 		Optional<EspacoDeMagia> espacoDeMagiaEncontrado = espacosDeMagia.stream()
 				.filter(espaco -> espaco.getNivel() == nivel).findFirst();

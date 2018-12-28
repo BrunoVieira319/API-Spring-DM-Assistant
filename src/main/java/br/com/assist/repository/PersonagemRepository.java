@@ -12,9 +12,6 @@ import br.com.assist.domain.Personagem;
 @Repository
 public interface PersonagemRepository extends JpaRepository<Personagem, Integer> {
 
-	@Query("SELECT p FROM Personagem p LEFT JOIN FETCH p.habilidades WHERE p.nome = :nome")
-	Personagem findByNomeWithHabilidades(@Param("nome") String nome);
-
 	@Query("SELECT p FROM Personagem p LEFT JOIN FETCH p.habilidades WHERE p.id = :id")
 	Optional<Personagem> findByIdComHabilidades(@Param("id") Integer id);
 }
