@@ -11,6 +11,8 @@ public class PersonagemDetalhesDto {
 	
 	private String nome;
 	
+	private int nivel;
+	
 	private int dadosDeVida;
 	
 	private List<HabilidadePersonagem> habilidades;
@@ -33,6 +35,14 @@ public class PersonagemDetalhesDto {
 		this.nome = nome;
 	}
 
+	public int getNivel() {
+		return nivel;
+	}
+	
+	public void setNivel(int nivel) {
+		this.nivel = nivel;
+	}
+	
 	public int getDadosDeVida() {
 		return dadosDeVida;
 	}

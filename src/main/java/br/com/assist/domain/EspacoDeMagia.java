@@ -91,7 +91,7 @@ public class EspacoDeMagia extends BaseDominio {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
-			return true;
+			return false;
 		}
 		EspacoDeMagia alvoComparacao = (EspacoDeMagia) obj;
 		return new EqualsBuilder().append(id, alvoComparacao.getId()).append(nivel, alvoComparacao.getNivel()).build();

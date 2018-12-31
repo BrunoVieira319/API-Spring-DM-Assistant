@@ -44,9 +44,11 @@ public class PersonagemService {
 
 			personagemDetalhesDto.setId(personagem.getId());
 			personagemDetalhesDto.setNome(personagem.getNome());
+			personagemDetalhesDto.setNivel(personagem.getNivel());
 			personagemDetalhesDto.setDadosDeVida(personagem.getDadosDeVida());
 			personagemDetalhesDto.setHabilidades(personagem.getHabilidades());
 			personagemDetalhesDto.setEspacosDeMagia(personagem.getEspacosDeMagia());
+			
 			return personagemDetalhesDto;
 		}
 		throw new ServiceException("Personagem não encontrado");
@@ -69,52 +71,60 @@ public class PersonagemService {
 
 			personagensHomePage.add(personagemDto);
 		}
-
 		return personagensHomePage;
 	}
 
 	public void salvarHabilidadeParaPersonagem(Integer id, HabilidadeDto habilidadeDto) {
-		Optional<Personagem> personagemOptional = repository.findById(id);
+		Personagem personagem = findById(id);
+		Habilidade habilidade = new Habilidade(habilidadeDto.getNome(), habilidadeDto.getDescricao());
+		personagem.adicionarHabilidade(habilidade, habilidadeDto.getQtdUsosMaximo(), habilidadeDto.getRecuperacao());
 
-		if (personagemOptional.isPresent()) {
-			Habilidade habilidade = new Habilidade(habilidadeDto.getNome(), habilidadeDto.getDescricao());
-
-			Personagem personagem = personagemOptional.get();
-			personagem.adicionarHabilidade(habilidade, habilidadeDto.getQtdUsosMaximo(),
-					habilidadeDto.getRecuperacao());
-
-			repository.saveAndFlush(personagem);
-		} else {
-			throw new ServiceException("Personagem não encontrado");
-		}
 	}
 
 	public void salvarEspacoDeMagiaParaPersonagem(Integer id, EspacoDeMagiaDto espacoDto) {
-		Optional<Personagem> personagemOptional = repository.findById(id);
-
-		if (personagemOptional.isPresent()) {
-			Personagem personagem = personagemOptional.get();
-
-			personagem.adicionarEspacoDeMagia(espacoDto.getNivel(), espacoDto.getQuantidadeMaxima());
-
-			repository.saveAndFlush(personagem);
-		} else {
-			throw new ServiceException("Personagem não encontrado");
-		}
+		Personagem personagem = findById(id);
+		personagem.adicionarEspacoDeMagia(espacoDto.getNivel(), espacoDto.getQuantidadeMaxima());
 	}
 
 	public void usarHabilidade(Integer idPersonagem, Integer idHabilidade) {
-		Optional<Personagem> personagem = repository.findByIdComHabilidades(idPersonagem);
-		if (personagem.isPresent()) {
-			personagem.get().usarHabilidade(idHabilidade);
-		}
-		throw new ServiceException("Personagem não encontrado");
+		Personagem personagem = findById(idPersonagem);
+		personagem.usarHabilidade(idHabilidade);
 	}
 
 	public void restaurarUsosDeHabilidade(Integer idPersonagem, Integer idHabilidade) {
-		Optional<Personagem> personagem = repository.findById(idPersonagem);
+		Personagem personagem = findById(idPersonagem);
+		personagem.restaurarUsosHabilidade(idHabilidade);
+	}
+
+	public void removerHabilidade(Integer idPersonagem, Integer idHabilidade) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.removerHabilidade(idHabilidade);
+	}
+
+	public void usarDadoDeVida(Integer id) {
+		Personagem personagem = findById(id);
+		personagem.usarDadoDeVida();
+	}
+
+	public void conjurarMagia(Integer idPersonagem, int nivel) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.conjurarMagia(nivel);
+	}
+
+	public void restaurarEspacoDeMagia(Integer idPersonagem, int nivel) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.restaurarEspacoDeMagia(nivel);
+	}
+
+	public void atualizarVidaDoPersonagem(Integer id, int vidaAtual) {
+		Personagem personagem = findById(id);
+		personagem.setVidaAtual(vidaAtual);
+	}
+
+	private Personagem findById(Integer id) {
+		Optional<Personagem> personagem = repository.findById(id);
 		if (personagem.isPresent()) {
-			personagem.get().restaurarUsosHabilidade(idHabilidade);
+			return personagem.get();
 		}
 		throw new ServiceException("Personagem não encontrado");
 	}
@@ -125,10 +135,6 @@ public class PersonagemService {
 
 	public void deletarTudo() {
 		repository.deleteAll();
-	}
-	
-	public Optional<Personagem> findById (Integer id) {
-		return repository.findById(id);
 	}
 
 }

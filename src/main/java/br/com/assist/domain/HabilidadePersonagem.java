@@ -60,7 +60,7 @@ public class HabilidadePersonagem extends BaseDominio {
 		qtdUsosRestantes = qtdUsosMaximo;
 	}
 
-	Integer getId() {
+	public Integer getId() {
 		return id;
 	}
 
@@ -92,7 +92,7 @@ public class HabilidadePersonagem extends BaseDominio {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
-			return true;
+			return false;
 		}
 		HabilidadePersonagem alvoComparacao = (HabilidadePersonagem) obj;
 		return new EqualsBuilder().append(id, alvoComparacao.getId()).append(habilidade, alvoComparacao.getHabilidade())

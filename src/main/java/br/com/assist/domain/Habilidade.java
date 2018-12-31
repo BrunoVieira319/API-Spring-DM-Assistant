@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -23,6 +24,7 @@ public class Habilidade extends BaseDominio {
 	private String nome;
 
 	@NotNull
+	@Lob	
 	private String descricao;
 
 	@SuppressWarnings("unused")
@@ -60,7 +62,7 @@ public class Habilidade extends BaseDominio {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
-			return true;
+			return false;
 		}
 		Habilidade alvoComparacao = (Habilidade) obj;
 		return new EqualsBuilder().append(id, alvoComparacao.getId()).append(nome, alvoComparacao.getNome())

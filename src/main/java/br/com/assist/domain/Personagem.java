@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -30,7 +29,6 @@ public class Personagem extends BaseDominio {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "personagem_id")
 	private Integer id;
 
 	@NotNull
@@ -73,6 +71,10 @@ public class Personagem extends BaseDominio {
 	@JoinColumn(name = "personagem_id")
 	private List<EspacoDeMagia> espacosDeMagia;
 
+	@OneToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, orphanRemoval = true, fetch = FetchType.LAZY)
+	@JoinColumn(name = "personagem_id")
+	private List<MagiaPersonagem> magias;
+
 	public Personagem(String nome, int nivel, int vidaMax, Raca raca, Classe classe, String img) {
 		this.nome = nome;
 		this.nivel = nivel;
@@ -84,6 +86,7 @@ public class Personagem extends BaseDominio {
 		this.img = img;
 		this.habilidades = new ArrayList<>();
 		this.espacosDeMagia = new ArrayList<>();
+		this.magias = new ArrayList<>();
 		validarDominio();
 	}
 
@@ -97,14 +100,11 @@ public class Personagem extends BaseDominio {
 		}
 	}
 
-	public void sofrerDano(int dano) {
-		int vidaRestante = vidaAtual - dano;
-		vidaAtual = (vidaRestante < 0) ? 0 : vidaRestante;
-	}
-
-	public void curar(int cura) {
-		int vidaRestante = vidaAtual + cura;
-		vidaAtual = (vidaRestante > vidaMax) ? vidaMax : vidaRestante;
+	public void setVidaAtual(int vidaAtualizada) {
+		if (vidaAtualizada < 0 || vidaAtualizada > vidaMax) {
+			throw new DominioInvalidoException("Valor de vida não válido");
+		}
+		vidaAtual = vidaAtualizada;
 	}
 
 	public void descansar() {
@@ -124,26 +124,72 @@ public class Personagem extends BaseDominio {
 		habilidades.add(new HabilidadePersonagem(habilidade, qtdUsosMaximos, recuperacao));
 	}
 
-	public void adicionarEspacoDeMagia(int nivel, int qtdEspacos) {
-		espacosDeMagia.add(new EspacoDeMagia(nivel, qtdEspacos));
-	}
-
 	public void usarHabilidade(Integer idHabilidade) {
 		getHabilidadePersonagem(idHabilidade).usarHabilidade();
-	}
-
-	public void conjurarMagia(int nivel) {
-		getEspacoDeMagia(nivel).usarEspaco();
 	}
 
 	public void restaurarUsosHabilidade(Integer idHabilidade) {
 		getHabilidadePersonagem(idHabilidade).restaurarUsos();
 	}
 
+	public void removerHabilidade(Integer id) {
+		habilidades.remove(getHabilidadePersonagem(id));
+	}
+
+	public void adicionarEspacoDeMagia(int nivel, int qtdEspacos) {
+		EspacoDeMagia espacoDeMagia = new EspacoDeMagia(nivel, qtdEspacos);
+
+		if (classe.equals(Classe.BRUXO) && espacosDeMagia.size() > 0) {
+			espacosDeMagia.remove(0);
+		} else if (espacosDeMagia.stream().anyMatch(e -> e.getNivel() == nivel)) {
+			Optional<EspacoDeMagia> espaco = espacosDeMagia.stream().filter(e -> e.getNivel() == nivel).findFirst();
+			espacosDeMagia.remove(espaco.get());
+		}
+
+		espacosDeMagia.add(espacoDeMagia);
+	}
+
+	public void conjurarMagia(int nivel) {
+		getEspacoDeMagia(nivel).usarEspaco();
+	}
+
 	public void restaurarEspacoDeMagia(int nivel) {
 		getEspacoDeMagia(nivel).restauraUmEspaco();
 	}
 
+	public void adicionarMagia(Magia magia) {
+		if (magias.stream().anyMatch(m -> m.getMagia().equals(magia))) {
+			throw new DominioInvalidoException("Magia já adicionada");
+		}
+		magias.add(new MagiaPersonagem(magia));
+	}
+
+	public void prepararMagia(Integer idMagia) {
+		if (classesQuePreparamMagia().contains(classe)) {
+			getMagiaPersonagem(idMagia).prepararMagia();
+		} else {
+			throw new DominioInvalidoException("Esta classe não prepara magias");
+		}
+	}
+
+	public void desprepararMagia(Integer idMagia) {
+		if (classesQuePreparamMagia().contains(classe)) {
+			getMagiaPersonagem(idMagia).desprepararMagia();
+		} else {
+			throw new DominioInvalidoException("Esta classe não prepara magias");
+		}
+	}
+	
+	private List<Classe> classesQuePreparamMagia() {
+		List<Classe> classesQuePreparamMagia = new ArrayList<>();
+		classesQuePreparamMagia.add(Classe.CLERIGO);
+		classesQuePreparamMagia.add(Classe.DRUIDA);
+		classesQuePreparamMagia.add(Classe.MAGO);
+		classesQuePreparamMagia.add(Classe.PALADINO);
+		
+		return classesQuePreparamMagia;
+	}
+	
 	private void restaurarTodosEspacosDeMagia() {
 		espacosDeMagia.stream().forEach(e -> e.restaurarTodosEspacos());
 	}
@@ -152,17 +198,13 @@ public class Personagem extends BaseDominio {
 		habilidades.stream().forEach(h -> h.restaurarUsos());
 	}
 
-	public void removerHabilidade(Habilidade habilidade) {
-		habilidades.remove(getHabilidadePersonagem(habilidade));
-	}
-
-	private HabilidadePersonagem getHabilidadePersonagem(Habilidade habilidade) {
-		Optional<HabilidadePersonagem> habilidadePersonagem = habilidades.stream()
-				.filter(h -> h.getHabilidade().equals(habilidade)).findFirst();
-		if (habilidadePersonagem.isPresent()) {
-			return habilidadePersonagem.get();
+	private MagiaPersonagem getMagiaPersonagem(Integer idMagia) {
+		Optional<MagiaPersonagem> magiaPersonagem = magias.stream().filter(m -> m.getMagia().getId() == idMagia)
+				.findFirst();
+		if (magiaPersonagem.isPresent()) {
+			return magiaPersonagem.get();
 		}
-		throw new DominioInvalidoException("Habilidade não encontrada para personagem");
+		throw new DominioInvalidoException("Magia não encontrada");
 	}
 
 	private HabilidadePersonagem getHabilidadePersonagem(Integer idHabilidade) {
@@ -171,20 +213,16 @@ public class Personagem extends BaseDominio {
 		if (habilidadePersonagem.isPresent()) {
 			return habilidadePersonagem.get();
 		}
-		throw new DominioInvalidoException("Habilidade não encontrada para personagem");
+		throw new DominioInvalidoException("Habilidade não encontrada");
 	}
-	
+
 	public EspacoDeMagia getEspacoDeMagia(int nivel) {
 		Optional<EspacoDeMagia> espacoDeMagiaEncontrado = espacosDeMagia.stream()
 				.filter(espaco -> espaco.getNivel() == nivel).findFirst();
 		if (espacoDeMagiaEncontrado.isPresent()) {
 			return espacoDeMagiaEncontrado.get();
 		}
-		throw new DominioInvalidoException("Espaço de Magia não encontrado para personagem");
-	}
-
-	public int getQtdUsosRestantesDeHabilidade(Habilidade habilidade) {
-		return getHabilidadePersonagem(habilidade).getQtdUsosRestantes();
+		throw new DominioInvalidoException("Espaço de Magia não encontrado");
 	}
 
 	public Integer getId() {
@@ -231,6 +269,10 @@ public class Personagem extends BaseDominio {
 		return Collections.unmodifiableList(espacosDeMagia);
 	}
 
+	public List<MagiaPersonagem> getMagias() {
+		return Collections.unmodifiableList(magias);
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -243,7 +285,7 @@ public class Personagem extends BaseDominio {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
-			return true;
+			return false;
 		}
 		Personagem alvoComparacao = (Personagem) obj;
 		return new EqualsBuilder().append(id, alvoComparacao.getId()).append(nome, alvoComparacao.getNome()).build();

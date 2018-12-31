@@ -2,11 +2,10 @@ package br.com.assist.controller;
 
 import java.util.List;
 
-import javax.validation.Valid;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.assist.domain.Habilidade;
 import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
@@ -24,6 +22,7 @@ import br.com.assist.dto.PersonagemDto;
 import br.com.assist.dto.PersonagemHomePageDto;
 import br.com.assist.service.PersonagemService;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = "/personagem")
 public class PersonagemController {
@@ -44,11 +43,24 @@ public class PersonagemController {
 	}
 
 	@PostMapping
-	public ResponseEntity<?> salvar(@RequestBody @Valid PersonagemDto personagemDto) {
+	public ResponseEntity<?> salvarPersonagem(@RequestBody PersonagemDto personagemDto) {
 		service.salvar(personagemDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
+	@PutMapping(value = "/{id}/vida/{vidaAtual}")
+	public ResponseEntity<?> atualizarVidaDoPersonagem(@PathVariable("id") Integer id,
+			@PathVariable("vidaAtual") int vidaAtual) {
+		service.atualizarVidaDoPersonagem(id, vidaAtual);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping("/{idPersonagem}/dadoDeVida")
+	public ResponseEntity<?> usarDadoDeVida(@PathVariable("idPersonagem") Integer id) {
+		service.usarDadoDeVida(id);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
 	@PostMapping("/{id}/habilidade")
 	public ResponseEntity<?> salvarHabilidade(@RequestBody HabilidadeDto habilidadeDto,
 			@PathVariable("id") Integer id) {
@@ -56,24 +68,45 @@ public class PersonagemController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@PostMapping("/{id}/espaco")
+	@PostMapping("/{id}/espacoDeMagia")
 	public ResponseEntity<?> salvarEspacoDeMagia(@RequestBody EspacoDeMagiaDto espacoDto,
 			@PathVariable("id") Integer id) {
 		service.salvarEspacoDeMagiaParaPersonagem(id, espacoDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@PutMapping("/{idPersonagem}/habilidade/{idHabilidade}")
-	public ResponseEntity<?> usarHabilidade(@PathVariable("idHabilidade") Integer idHabilidade,
-			@PathVariable("idPersonagem") Integer idPersonagem) {
+	@PutMapping("/{idPersonagem}/habilidade/{idHabilidade}/usar")
+	public ResponseEntity<?> usarHabilidade(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idHabilidade") Integer idHabilidade) {
 		service.usarHabilidade(idPersonagem, idHabilidade);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@PutMapping("/{idPersonagem}/restaurar-habilidade/{idHabilidade}")
-	public ResponseEntity<?> restaurarUsosHabilidade(@PathVariable("idHabilidade") Integer idHabilidade,
-			@PathVariable("idPersonagem") Integer idPersonagem) {
+	@PutMapping("/{idPersonagem}/habilidade/{idHabilidade}/restaurar")
+	public ResponseEntity<?> restaurarUsosHabilidade(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idHabilidade") Integer idHabilidade) {
 		service.restaurarUsosDeHabilidade(idPersonagem, idHabilidade);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@DeleteMapping("/{idPersonagem}/habilidade/{idHabilidade}")
+	public ResponseEntity<?> removerHabilidade(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idHabilidade") Integer idHabilidade) {
+		service.removerHabilidade(idPersonagem, idHabilidade);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping("/{idPersonagem}/espacoDeMagia/{nivel}/usar")
+	public ResponseEntity<?> conjurarMagia(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("nivel") int nivel) {
+		service.conjurarMagia(idPersonagem, nivel);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+	
+	@PutMapping("/{idPersonagem}/espacoDeMagia/{nivel}/restaurar")
+	public ResponseEntity<?> restaurarEspacoDeMagia(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("nivel") int nivel) {
+		service.restaurarEspacoDeMagia(idPersonagem, nivel);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
