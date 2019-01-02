@@ -38,7 +38,7 @@ public class MagiaServiceTest {
 	
 	@Test
 	public void salvarMagia() {
-		service.salvarMagia(magiaDto);
+		service.salvar(magiaDto);
 		
 		Magia magia = service.buscarTodasMagias().get(0);
 		
@@ -52,4 +52,6 @@ public class MagiaServiceTest {
 		assertEquals(magia.getDuracao(), magiaDto.getDuracao());
 		assertEquals(magia.getDescricao(), magiaDto.getDescricao());
 	}
+	
+	
 }

@@ -9,34 +9,43 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.assist.domain.Habilidade;
+import br.com.assist.domain.Magia;
 import br.com.assist.domain.Personagem;
 import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
 import br.com.assist.dto.PersonagemHomePageDto;
+import br.com.assist.repository.MagiaRepository;
 import br.com.assist.repository.PersonagemRepository;
 
 @Service
 @Transactional
 public class PersonagemService {
 
-	private PersonagemRepository repository;
-
 	@Autowired
-	public PersonagemService(PersonagemRepository repository) {
-		this.repository = repository;
+	private PersonagemRepository personagemRepository;
+	
+	@Autowired
+	private MagiaRepository magiaRepository;
+	
+	private Personagem findById(Integer id) {
+		Optional<Personagem> personagem = personagemRepository.findById(id);
+		if (personagem.isPresent()) {
+			return personagem.get();
+		}
+		throw new ServiceException("Personagem não encontrado");
 	}
 
 	public void salvar(PersonagemDto pDto) {
 		Personagem personagem = new Personagem(pDto.getNome(), pDto.getNivel(), pDto.getVidaMax(), pDto.getRaca(),
 				pDto.getClasse(), pDto.getImg());
 
-		repository.saveAndFlush(personagem);
+		personagemRepository.saveAndFlush(personagem);
 	}
 
 	public PersonagemDetalhesDto buscarPorId(Integer id) {
-		Optional<Personagem> personagemOptional = repository.findByIdComHabilidades(id);
+		Optional<Personagem> personagemOptional = personagemRepository.findByIdComHabilidades(id);
 
 		if (personagemOptional.isPresent()) {
 			Personagem personagem = personagemOptional.get();
@@ -48,14 +57,14 @@ public class PersonagemService {
 			personagemDetalhesDto.setDadosDeVida(personagem.getDadosDeVida());
 			personagemDetalhesDto.setHabilidades(personagem.getHabilidades());
 			personagemDetalhesDto.setEspacosDeMagia(personagem.getEspacosDeMagia());
-			
+			personagemDetalhesDto.setMagias(personagemRepository.buscaPersonagemComMagias(id).getMagias());
 			return personagemDetalhesDto;
 		}
 		throw new ServiceException("Personagem não encontrado");
 	}
 
 	public List<PersonagemHomePageDto> buscarTodosPersonagens() {
-		List<Personagem> personagens = repository.findAll();
+		List<Personagem> personagens = personagemRepository.findAll();
 		List<PersonagemHomePageDto> personagensHomePage = new ArrayList<>();
 
 		for (Personagem p : personagens) {
@@ -78,12 +87,19 @@ public class PersonagemService {
 		Personagem personagem = findById(id);
 		Habilidade habilidade = new Habilidade(habilidadeDto.getNome(), habilidadeDto.getDescricao());
 		personagem.adicionarHabilidade(habilidade, habilidadeDto.getQtdUsosMaximo(), habilidadeDto.getRecuperacao());
-
 	}
 
 	public void salvarEspacoDeMagiaParaPersonagem(Integer id, EspacoDeMagiaDto espacoDto) {
 		Personagem personagem = findById(id);
 		personagem.adicionarEspacoDeMagia(espacoDto.getNivel(), espacoDto.getQuantidadeMaxima());
+	}
+	
+	public void salvarMagiaParaPersonagem(Integer idPersonagem, Integer idMagia) {
+		Personagem personagem = findById(idPersonagem);
+		Optional<Magia> magia = magiaRepository.findById(idMagia);
+		if (magia.isPresent()) {
+			personagem.adicionarMagia(magia.get());
+		}
 	}
 
 	public void usarHabilidade(Integer idPersonagem, Integer idHabilidade) {
@@ -120,21 +136,23 @@ public class PersonagemService {
 		Personagem personagem = findById(id);
 		personagem.setVidaAtual(vidaAtual);
 	}
-
-	private Personagem findById(Integer id) {
-		Optional<Personagem> personagem = repository.findById(id);
-		if (personagem.isPresent()) {
-			return personagem.get();
-		}
-		throw new ServiceException("Personagem não encontrado");
+	
+	public void prepararMagia(Integer idPersonagem, Integer idMagia) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.prepararMagia(idMagia);
+	}
+	
+	public void desprepararMagia(Integer idPersonagem, Integer idMagia) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.desprepararMagia(idMagia);
 	}
 
 	public void deletarPorId(int id) {
-		repository.deleteById(id);
+		personagemRepository.deleteById(id);
 	}
 
 	public void deletarTudo() {
-		repository.deleteAll();
+		personagemRepository.deleteAll();
 	}
 
 }

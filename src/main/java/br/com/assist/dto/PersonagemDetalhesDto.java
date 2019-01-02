@@ -4,6 +4,7 @@ import java.util.List;
 
 import br.com.assist.domain.EspacoDeMagia;
 import br.com.assist.domain.HabilidadePersonagem;
+import br.com.assist.domain.MagiaPersonagem;
 
 public class PersonagemDetalhesDto {
 
@@ -18,6 +19,8 @@ public class PersonagemDetalhesDto {
 	private List<HabilidadePersonagem> habilidades;
 	
 	private List<EspacoDeMagia> espacosDeMagia;
+	
+	private List<MagiaPersonagem> magias;
 
 	public Integer getId() {
 		return id;
@@ -67,5 +70,12 @@ public class PersonagemDetalhesDto {
 		this.espacosDeMagia = espacosDeMagia;
 	}
 	
+	public List<MagiaPersonagem> getMagias() {
+		return magias;
+	}
+	
+	public void setMagias(List<MagiaPersonagem> magias) {
+		this.magias = magias;
+	}
 	
 }

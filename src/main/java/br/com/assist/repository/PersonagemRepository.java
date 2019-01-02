@@ -14,4 +14,7 @@ public interface PersonagemRepository extends JpaRepository<Personagem, Integer>
 
 	@Query("SELECT p FROM Personagem p LEFT JOIN FETCH p.habilidades WHERE p.id = :id")
 	Optional<Personagem> findByIdComHabilidades(@Param("id") Integer id);
+	
+	@Query("SELECT p FROM Personagem p LEFT JOIN FETCH p.magias WHERE p.id = :id")
+	Personagem buscaPersonagemComMagias(@Param("id") Integer id);
 }

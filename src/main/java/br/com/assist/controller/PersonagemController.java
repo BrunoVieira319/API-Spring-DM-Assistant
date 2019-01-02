@@ -74,6 +74,13 @@ public class PersonagemController {
 		service.salvarEspacoDeMagiaParaPersonagem(id, espacoDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
+	
+	@PostMapping("/{idPersonagem}/magia/{idMagia}")
+	public ResponseEntity<?> salvarMagia(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idMagia") Integer idMagia) {
+		service.salvarMagiaParaPersonagem(idPersonagem, idMagia);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 	@PutMapping("/{idPersonagem}/habilidade/{idHabilidade}/usar")
 	public ResponseEntity<?> usarHabilidade(@PathVariable("idPersonagem") Integer idPersonagem,

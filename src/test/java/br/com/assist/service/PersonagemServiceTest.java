@@ -1,6 +1,7 @@
 package br.com.assist.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -13,14 +14,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import br.com.assist.domain.Classe;
+import br.com.assist.domain.EscolaDeMagia;
 import br.com.assist.domain.EspacoDeMagia;
 import br.com.assist.domain.Recuperacao;
 import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
+import br.com.assist.dto.MagiaDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
 import br.com.assist.dto.PersonagemHomePageDto;
 import br.com.assist.domain.HabilidadePersonagem;
+import br.com.assist.domain.Personagem;
 import br.com.assist.domain.Raca;
 
 @RunWith(SpringRunner.class)
@@ -28,16 +32,15 @@ import br.com.assist.domain.Raca;
 public class PersonagemServiceTest {
 
 	@Autowired
-	private PersonagemService service;
+	private PersonagemService personagemService;
 
+	@Autowired
+	private MagiaService magiaService;
+	
 	private PersonagemDto personagem;
-	
-	private HabilidadeDto habilidadeDto;
-	
-	private EspacoDeMagiaDto espacoDto;
-
+			
 	@Before
-	public void criarUmPersonagem() {
+	public void criarDominios() {
 		personagem = new PersonagemDto();
 		personagem.setNome("Angor Rot");
 		personagem.setNivel(1);
@@ -45,28 +48,19 @@ public class PersonagemServiceTest {
 		personagem.setRaca(Raca.MEIO_ORC);
 		personagem.setClasse(Classe.BRUXO);
 		personagem.setImg("Imagem");
-		
-		habilidadeDto = new HabilidadeDto();
-		habilidadeDto.setNome("Invocações Místicas");
-		habilidadeDto.setDescricao("Descrição");
-		habilidadeDto.setQtdUsosMaximo(2);
-		habilidadeDto.setRecuperacao(Recuperacao.DESCANSO_CURTO);
-		
-		espacoDto = new EspacoDeMagiaDto();
-		espacoDto.setNivel(1);
-		espacoDto.setQuantidadeMaxima(2);
 	}
 
 	@After
 	public void deletarBaseDeDados() {
-		service.deletarTudo();
+		personagemService.deletarTudo();
+		magiaService.deletarTudo();
 	}
 
 	@Test
 	public void salvarPersonagem() {
-		service.salvar(personagem);
+		personagemService.salvar(personagem);
 
-		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
+		List<PersonagemHomePageDto> personagens = personagemService.buscarTodosPersonagens();
 
 		assertEquals(1, personagens.size());
 
@@ -91,37 +85,37 @@ public class PersonagemServiceTest {
 		personagem2.setClasse(Classe.BARDO);
 		personagem2.setImg("Imagem");
 
-		service.salvar(personagem);
-		service.salvar(personagem2);
+		personagemService.salvar(personagem);
+		personagemService.salvar(personagem2);
 
-		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
+		List<PersonagemHomePageDto> personagens = personagemService.buscarTodosPersonagens();
 
 		assertEquals(2, personagens.size());
 	}
 
 	@Test
 	public void buscarPersonagemPorId() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
 
-		PersonagemDetalhesDto personagemEncontrado = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemEncontrado = personagemService.buscarPorId(idPersonagemNaBase);
 
 		assertEquals("Angor Rot", personagemEncontrado.getNome());
 	}
 	
 	@Test(expected = ServiceException.class)
 	public void buscarPersonagemNaoExistentePorId() {
-		service.buscarPorId(1);
+		personagemService.buscarPorId(1);
 	}
 
 	@Test
 	public void adicionarHabilidadeParaPersonagem() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
 
-		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, habilidadeDto);
+		personagemService.salvarHabilidadeParaPersonagem(idPersonagemNaBase, criarHabilidadeDto());
 
-		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		HabilidadePersonagem habilidadePersonagem = personagemNaBase.getHabilidades().get(0);
 
 		assertEquals(2, habilidadePersonagem.getQtdUsosMaximo());
@@ -133,50 +127,50 @@ public class PersonagemServiceTest {
 
 	@Test
 	public void usarHabilidade() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, habilidadeDto);
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvarHabilidadeParaPersonagem(idPersonagemNaBase, criarHabilidadeDto());
 
-		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		HabilidadePersonagem habilidadePersonagem = personagemNaBase.getHabilidades().get(0);
 				
-		service.usarHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
+		personagemService.usarHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
 		
-		personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(1, personagemNaBase.getHabilidades().get(0).getQtdUsosRestantes());
 	}
 	
 	@Test
 	public void restaurarUsosdeHabilidade() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, habilidadeDto);
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvarHabilidadeParaPersonagem(idPersonagemNaBase, criarHabilidadeDto());
 
-		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		HabilidadePersonagem habilidadePersonagem = personagemNaBase.getHabilidades().get(0);
 
-		service.usarHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
+		personagemService.usarHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
 
-		service.restaurarUsosDeHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
+		personagemService.restaurarUsosDeHabilidade(personagemNaBase.getId(), habilidadePersonagem.getHabilidade().getId());
 
-		personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(2, personagemNaBase.getHabilidades().get(0).getQtdUsosRestantes());
 	}
 	
 	@Test
 	public void removerHabilidade() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		service.salvarHabilidadeParaPersonagem(idPersonagemNaBase, habilidadeDto);
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvarHabilidadeParaPersonagem(idPersonagemNaBase, criarHabilidadeDto());
 
-		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		Integer idHabilidade = personagemNaBase.getHabilidades().get(0).getHabilidade().getId();
 		
-		service.removerHabilidade(idPersonagemNaBase, idHabilidade);
+		personagemService.removerHabilidade(idPersonagemNaBase, idHabilidade);
 
-		personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(0, personagemNaBase.getHabilidades().size());
 	}
@@ -184,16 +178,45 @@ public class PersonagemServiceTest {
 	
 	@Test
 	public void adicionarMagiaParaPersoangem() {
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+
+		magiaService.salvar(criarMagiaDto());
+		Integer idMagiaNaBase = magiaService.buscarTodasMagias().get(0).getId();
+		
+		personagemService.salvarMagiaParaPersonagem(idPersonagemNaBase, idMagiaNaBase);
+		
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
+		
+		assertEquals(1, personagemNaBase.getMagias().size());
+		assertEquals("Bola de Fogo", personagemNaBase.getMagias().get(0).getMagia().getNome());
+	}
+	
+	@Test
+	public void prepararMagia() {
+		personagem.setClasse(Classe.MAGO);
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+
+		magiaService.salvar(criarMagiaDto());
+		Integer idMagiaNaBase = magiaService.buscarTodasMagias().get(0).getId();
+		System.out.println(idMagiaNaBase);
+		
+		personagemService.prepararMagia(idPersonagemNaBase, idMagiaNaBase);
+		
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
+
+		assertTrue(personagemNaBase.getMagias().get(0).isPreparada());
 	}
 	
 	@Test
 	public void adicionarEspacoDeMagiaParaPersonagem() {
-		service.salvar(personagem);		
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvar(personagem);		
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
 		
-		service.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, espacoDto);
+		personagemService.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, criarEspacoDeMagiaDto());
 		
-		PersonagemDetalhesDto personagemNaBase = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagemNaBase = personagemService.buscarPorId(idPersonagemNaBase);
 
 		EspacoDeMagia espaco = personagemNaBase.getEspacosDeMagia().get(0);
 		
@@ -205,52 +228,55 @@ public class PersonagemServiceTest {
 	
 	@Test
 	public void conjurarMagia() {
-		service.salvar(personagem);		
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		service.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, espacoDto);
+		personagemService.salvar(personagem);		
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, criarEspacoDeMagiaDto());
 		
-		service.conjurarMagia(idPersonagemNaBase, espacoDto.getNivel());
+		personagemService.conjurarMagia(idPersonagemNaBase, criarEspacoDeMagiaDto().getNivel());
 		
-		PersonagemDetalhesDto personagem = service.buscarPorId(idPersonagemNaBase);
+		PersonagemDetalhesDto personagem = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(1, personagem.getEspacosDeMagia().get(0).getQuantidade());
 	}
 	
 	@Test
 	public void restaurarEspacoDeMagia() {
-		service.salvar(personagem);		
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		service.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, espacoDto);
-		service.conjurarMagia(idPersonagemNaBase, espacoDto.getNivel());
+		personagemService.salvar(personagem);		
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
 		
-		service.restaurarEspacoDeMagia(idPersonagemNaBase, espacoDto.getNivel());
+		EspacoDeMagiaDto espacoDto = criarEspacoDeMagiaDto();
 		
-		PersonagemDetalhesDto personagem = service.buscarPorId(idPersonagemNaBase);
+		personagemService.salvarEspacoDeMagiaParaPersonagem(idPersonagemNaBase, espacoDto);
+		personagemService.conjurarMagia(idPersonagemNaBase, espacoDto.getNivel());
+		
+		personagemService.restaurarEspacoDeMagia(idPersonagemNaBase, espacoDto.getNivel());
+		
+		PersonagemDetalhesDto personagem = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(2, personagem.getEspacosDeMagia().get(0).getQuantidade());
 	}
 	
 	@Test
 	public void usarDadoDeVida() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
-		PersonagemDetalhesDto personagem = service.buscarPorId(idPersonagemNaBase);
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
+		PersonagemDetalhesDto personagem = personagemService.buscarPorId(idPersonagemNaBase);
 		
-		service.usarDadoDeVida(personagem.getId());
+		personagemService.usarDadoDeVida(personagem.getId());
 		
-		personagem = service.buscarPorId(idPersonagemNaBase);
+		personagem = personagemService.buscarPorId(idPersonagemNaBase);
 		
 		assertEquals(0, personagem.getDadosDeVida());
 	}
 	
 	@Test
 	public void removerPersonagemPorId() {
-		service.salvar(personagem);
-		Integer idPersonagemNaBase = service.buscarTodosPersonagens().get(0).getId();
+		personagemService.salvar(personagem);
+		Integer idPersonagemNaBase = personagemService.buscarTodosPersonagens().get(0).getId();
 
-		service.deletarPorId(idPersonagemNaBase);
+		personagemService.deletarPorId(idPersonagemNaBase);
 
-		assertEquals(0, service.buscarTodosPersonagens().size());
+		assertEquals(0, personagemService.buscarTodosPersonagens().size());
 	}
 
 	@Test
@@ -263,12 +289,44 @@ public class PersonagemServiceTest {
 		personagem2.setClasse(Classe.BARDO);
 		personagem2.setImg("Imagem");
 
-		service.salvar(personagem);
-		service.salvar(personagem2);
+		personagemService.salvar(personagem);
+		personagemService.salvar(personagem2);
 
-		service.deletarTudo();
+		personagemService.deletarTudo();
 
-		assertEquals(0, service.buscarTodosPersonagens().size());
+		assertEquals(0, personagemService.buscarTodosPersonagens().size());
+	}
+	
+	private HabilidadeDto criarHabilidadeDto() {
+		HabilidadeDto habilidadeDto = new HabilidadeDto();
+		habilidadeDto.setNome("Invocações Místicas");
+		habilidadeDto.setDescricao("Descrição");
+		habilidadeDto.setQtdUsosMaximo(2);
+		habilidadeDto.setRecuperacao(Recuperacao.DESCANSO_CURTO);
+		
+		return habilidadeDto;
 	}
 
+	private EspacoDeMagiaDto criarEspacoDeMagiaDto() {
+		EspacoDeMagiaDto espacoDto = new EspacoDeMagiaDto();
+		espacoDto.setNivel(1);
+		espacoDto.setQuantidadeMaxima(2);
+		return espacoDto;
+	}
+	
+	private MagiaDto criarMagiaDto() {
+		MagiaDto magiaDto = new MagiaDto();
+		magiaDto.setNome("Bola de Fogo");
+		magiaDto.setNivel(3);
+		magiaDto.setEscola(EscolaDeMagia.EVOCACAO);
+		magiaDto.setRitual(false);
+		magiaDto.setTempoDeConjuracao("1 ação");
+		magiaDto.setAlcance("45m");
+		magiaDto.setComponentes("V S M");
+		magiaDto.setDuracao("Instantânea");
+		magiaDto.setDescricao("descricão");
+		
+		return magiaDto;
+	}
+	
 }
