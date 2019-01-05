@@ -15,6 +15,7 @@ import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
+import br.com.assist.dto.PersonagemEditarDto;
 import br.com.assist.dto.PersonagemHomePageDto;
 import br.com.assist.repository.MagiaRepository;
 import br.com.assist.repository.PersonagemRepository;
@@ -55,6 +56,7 @@ public class PersonagemService {
 			personagemDetalhesDto.setNome(personagem.getNome());
 			personagemDetalhesDto.setNivel(personagem.getNivel());
 			personagemDetalhesDto.setDadosDeVida(personagem.getDadosDeVida());
+			personagemDetalhesDto.setImg(personagem.getImg());
 			personagemDetalhesDto.setHabilidades(personagem.getHabilidades());
 			personagemDetalhesDto.setEspacosDeMagia(personagem.getEspacosDeMagia());
 			personagemDetalhesDto.setMagias(personagemRepository.buscaPersonagemComMagias(id).getMagias());
@@ -82,6 +84,14 @@ public class PersonagemService {
 		}
 		return personagensHomePage;
 	}
+	
+	public void editarPersonagem(PersonagemEditarDto personagemDto) {
+		Personagem personagem = findById(personagemDto.getId());
+		personagem.setNivel(personagemDto.getNivel());
+		personagem.setVidaMax(personagemDto.getVidaMax());
+		personagem.setImg(personagemDto.getImg());
+
+	}
 
 	public void salvarHabilidadeParaPersonagem(Integer id, HabilidadeDto habilidadeDto) {
 		Personagem personagem = findById(id);
@@ -99,9 +109,21 @@ public class PersonagemService {
 		Optional<Magia> magia = magiaRepository.findById(idMagia);
 		if (magia.isPresent()) {
 			personagem.adicionarMagia(magia.get());
+		} else {
+			throw new ServiceException("Magia não encontrada");
 		}
 	}
 
+	public void usarDadoDeVida(Integer id) {
+		Personagem personagem = findById(id);
+		personagem.usarDadoDeVida();
+	}
+	
+	public void descansarPersonagem(Integer id) {
+		Personagem personagem = findById(id);
+		personagem.descansar();
+	}
+	
 	public void usarHabilidade(Integer idPersonagem, Integer idHabilidade) {
 		Personagem personagem = findById(idPersonagem);
 		personagem.usarHabilidade(idHabilidade);
@@ -115,11 +137,6 @@ public class PersonagemService {
 	public void removerHabilidade(Integer idPersonagem, Integer idHabilidade) {
 		Personagem personagem = findById(idPersonagem);
 		personagem.removerHabilidade(idHabilidade);
-	}
-
-	public void usarDadoDeVida(Integer id) {
-		Personagem personagem = findById(id);
-		personagem.usarDadoDeVida();
 	}
 
 	public void conjurarMagia(Integer idPersonagem, int nivel) {
@@ -145,6 +162,11 @@ public class PersonagemService {
 	public void desprepararMagia(Integer idPersonagem, Integer idMagia) {
 		Personagem personagem = findById(idPersonagem);
 		personagem.desprepararMagia(idMagia);
+	}
+	
+	public void removerMagiaDoPersonagem(Integer idPersonagem, Integer idMagia) {
+		Personagem personagem = findById(idPersonagem);
+		personagem.removerMagia(idMagia);
 	}
 
 	public void deletarPorId(int id) {

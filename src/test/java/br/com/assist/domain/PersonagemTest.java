@@ -29,21 +29,6 @@ public class PersonagemTest {
 	}
 
 	@Test
-	public void subirNivelDoPersonagem() {
-		personagem.subirDeNivel();
-		assertEquals(2, personagem.getNivel());
-	}
-
-	@Test
-	public void nivelDePersonagemNaoDeveUltrapassarVinte() {
-		personagem = new Personagem("Angor Rot", 20, 10, Raca.MEIO_ORC, Classe.BRUXO, "Imagem");
-
-		personagem.subirDeNivel();
-
-		assertEquals(20, personagem.getNivel());
-	}
-
-	@Test
 	public void mudarVidaAtual() {
 		personagem.setVidaAtual(3);
 
@@ -90,6 +75,17 @@ public class PersonagemTest {
 				"Instantânea", "descrição");
 		personagem.adicionarMagia(magia);
 		personagem.adicionarMagia(magia);
+	}
+
+	@Test
+	public void removerMagiaDoPersonagem() {
+		Magia magia = new Magia("Bola De Fogo", 3, EscolaDeMagia.EVOCACAO, false, "1 ação", "45m", "V S M",
+				"Instantânea", "descrição");
+		personagem.adicionarMagia(magia);
+
+		personagem.removerMagia(null);
+		
+		assertEquals(0, personagem.getMagias().size());
 	}
 
 	@Test
@@ -220,5 +216,22 @@ public class PersonagemTest {
 		assertEquals(1, personagem.getHabilidades().get(0).getQtdUsosRestantes());
 		assertEquals(3, personagem.getEspacoDeMagia(1).getQuantidade());
 	}
-
+	
+	@Test
+	public void mudarNivel() {
+		personagem.setNivel(2);
+		assertEquals(2, personagem.getNivel());
+	}
+	
+	@Test
+	public void mudarVidaMaxima() {
+		personagem.setVidaMax(20);
+		assertEquals(20, personagem.getVidaMax());
+	}
+	
+	@Test
+	public void mudarImg() {
+		personagem.setImg("outra imagem");
+		assertEquals("outra imagem", personagem.getImg());
+	}
 }

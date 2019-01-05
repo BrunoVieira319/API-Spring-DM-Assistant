@@ -19,6 +19,7 @@ import br.com.assist.dto.EspacoDeMagiaDto;
 import br.com.assist.dto.HabilidadeDto;
 import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
+import br.com.assist.dto.PersonagemEditarDto;
 import br.com.assist.dto.PersonagemHomePageDto;
 import br.com.assist.service.PersonagemService;
 
@@ -55,12 +56,18 @@ public class PersonagemController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
-	@PutMapping("/{idPersonagem}/dadoDeVida")
-	public ResponseEntity<?> usarDadoDeVida(@PathVariable("idPersonagem") Integer id) {
+	@PutMapping("/{id}/dadoDeVida")
+	public ResponseEntity<?> usarDadoDeVida(@PathVariable("id") Integer id) {
 		service.usarDadoDeVida(id);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
+	@PutMapping("{id}/descansar")
+	public ResponseEntity<?> descansarPersonagem(@PathVariable("id") Integer id) {
+		service.descansarPersonagem(id);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
 	@PostMapping("/{id}/habilidade")
 	public ResponseEntity<?> salvarHabilidade(@RequestBody HabilidadeDto habilidadeDto,
 			@PathVariable("id") Integer id) {
@@ -74,7 +81,7 @@ public class PersonagemController {
 		service.salvarEspacoDeMagiaParaPersonagem(id, espacoDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/{idPersonagem}/magia/{idMagia}")
 	public ResponseEntity<?> salvarMagia(@PathVariable("idPersonagem") Integer idPersonagem,
 			@PathVariable("idMagia") Integer idMagia) {
@@ -109,11 +116,38 @@ public class PersonagemController {
 		service.conjurarMagia(idPersonagem, nivel);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
-	
+
 	@PutMapping("/{idPersonagem}/espacoDeMagia/{nivel}/restaurar")
 	public ResponseEntity<?> restaurarEspacoDeMagia(@PathVariable("idPersonagem") Integer idPersonagem,
 			@PathVariable("nivel") int nivel) {
 		service.restaurarEspacoDeMagia(idPersonagem, nivel);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping("/{idPersonagem}/magia/{idMagia}/preparar")
+	public ResponseEntity<?> prepararMagia(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idMagia") Integer idMagia) {
+		service.prepararMagia(idPersonagem, idMagia);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping("/{idPersonagem}/magia/{idMagia}/despreparar")
+	public ResponseEntity<?> desprepararMagia(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idMagia") Integer idMagia) {
+		service.desprepararMagia(idPersonagem, idMagia);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@DeleteMapping("/{idPersonagem}/magia/{idMagia}")
+	public ResponseEntity<?> removerMagiaDoPersonagem(@PathVariable("idPersonagem") Integer idPersonagem,
+			@PathVariable("idMagia") Integer idMagia) {
+		service.removerMagiaDoPersonagem(idPersonagem, idMagia);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@PutMapping
+	public ResponseEntity<?> editarPersonagem(@RequestBody PersonagemEditarDto personagemDto) {
+		service.editarPersonagem(personagemDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 

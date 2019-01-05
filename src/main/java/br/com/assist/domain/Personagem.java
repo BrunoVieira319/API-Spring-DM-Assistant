@@ -94,12 +94,6 @@ public class Personagem extends BaseDominio {
 	private Personagem() {
 	}
 
-	public void subirDeNivel() {
-		if (nivel < 20) {
-			nivel += 1;
-		}
-	}
-
 	public void setVidaAtual(int vidaAtualizada) {
 		if (vidaAtualizada < 0 || vidaAtualizada > vidaMax) {
 			throw new DominioInvalidoException("Valor de vida não válido");
@@ -164,6 +158,10 @@ public class Personagem extends BaseDominio {
 		magias.add(new MagiaPersonagem(magia));
 	}
 
+	public void removerMagia(Integer idMagia) {
+		magias.remove(getMagiaPersonagem(idMagia));
+	}
+
 	public void prepararMagia(Integer idMagia) {
 		if (classesQuePreparamMagia().contains(classe)) {
 			getMagiaPersonagem(idMagia).prepararMagia();
@@ -179,23 +177,44 @@ public class Personagem extends BaseDominio {
 			throw new DominioInvalidoException("Esta classe não prepara magias");
 		}
 	}
-	
+
 	private List<Classe> classesQuePreparamMagia() {
 		List<Classe> classesQuePreparamMagia = new ArrayList<>();
 		classesQuePreparamMagia.add(Classe.CLERIGO);
 		classesQuePreparamMagia.add(Classe.DRUIDA);
 		classesQuePreparamMagia.add(Classe.MAGO);
 		classesQuePreparamMagia.add(Classe.PALADINO);
-		
+
 		return classesQuePreparamMagia;
 	}
-	
+
 	private void restaurarTodosEspacosDeMagia() {
 		espacosDeMagia.stream().forEach(e -> e.restaurarTodosEspacos());
 	}
 
 	private void restaurarTodosUsosDeHabilidade() {
 		habilidades.stream().forEach(h -> h.restaurarUsos());
+	}
+
+	public void setNivel(int nivel) {
+		if (nivel > 0) {
+			this.nivel = nivel;
+			validarDominio();
+		}
+	}
+
+	public void setVidaMax(int vidaMax) {
+		if (vidaMax > 0) {
+			this.vidaMax = vidaMax;
+			validarDominio();
+		}
+	}
+
+	public void setImg(String img) {
+		if (!img.isEmpty()) {
+			this.img = img;
+			validarDominio();
+		}
 	}
 
 	private MagiaPersonagem getMagiaPersonagem(Integer idMagia) {

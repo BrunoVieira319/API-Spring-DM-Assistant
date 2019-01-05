@@ -16,6 +16,8 @@ public class PersonagemDetalhesDto {
 	
 	private int dadosDeVida;
 	
+	private String img;
+	
 	private List<HabilidadePersonagem> habilidades;
 	
 	private List<EspacoDeMagia> espacosDeMagia;
@@ -52,6 +54,14 @@ public class PersonagemDetalhesDto {
 
 	public void setDadosDeVida(int dadosDeVida) {
 		this.dadosDeVida = dadosDeVida;
+	}
+	
+	public String getImg() {
+		return img;
+	}
+	
+	public void setImg(String img) {
+		this.img = img;
 	}
 
 	public List<HabilidadePersonagem> getHabilidades() {
