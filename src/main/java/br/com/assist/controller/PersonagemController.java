@@ -21,6 +21,7 @@ import br.com.assist.dto.PersonagemDetalhesDto;
 import br.com.assist.dto.PersonagemDto;
 import br.com.assist.dto.PersonagemEditarDto;
 import br.com.assist.dto.PersonagemHomePageDto;
+import br.com.assist.metrics.SingletonGetPersonagens;
 import br.com.assist.service.PersonagemService;
 
 @CrossOrigin
@@ -33,6 +34,7 @@ public class PersonagemController {
 
 	@GetMapping
 	public ResponseEntity<List<PersonagemHomePageDto>> buscarTodosPersonagens() {
+		SingletonGetPersonagens.INSTANCE.inc();
 		List<PersonagemHomePageDto> personagens = service.buscarTodosPersonagens();
 		return new ResponseEntity<List<PersonagemHomePageDto>>(personagens, HttpStatus.OK);
 	}

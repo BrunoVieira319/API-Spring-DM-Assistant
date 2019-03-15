@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.assist.domain.Magia;
 import br.com.assist.dto.MagiaDto;
 import br.com.assist.dto.MagiaPesquisaDto;
+import br.com.assist.metrics.SingletonGetMagias;
 import br.com.assist.service.MagiaService;
 
 @RestController
@@ -28,6 +29,7 @@ public class MagiaController {
 
 	@GetMapping
 	public ResponseEntity<List<Magia>> buscarMagias() {
+		SingletonGetMagias.INSTANCE.inc();
 		List<Magia> magias = service.buscarTodasMagias();
 		return new ResponseEntity<List<Magia>>(magias, HttpStatus.OK);
 	}

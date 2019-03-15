@@ -1,8 +1,11 @@
 package br.com.assist.service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,7 +63,11 @@ public class MagiaService {
 	}
 
 	public List<Magia> buscarTodasMagias() {
-		return repository.findAll();
+		List<Magia> magias = repository.findAll();
+		Stream<Magia> sortMagias = magias.stream();
+		sortMagias = sortMagias.sorted(Comparator.comparing(Magia::getNome));
+		sortMagias = sortMagias.sorted(Comparator.comparing(Magia::getNivel));
+		return sortMagias.collect(Collectors.toList());
 	}
 	
 	public void deletarTudo() {
