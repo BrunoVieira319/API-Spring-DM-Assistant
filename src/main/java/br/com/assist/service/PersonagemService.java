@@ -38,11 +38,11 @@ public class PersonagemService {
 		throw new ServiceException("Personagem não encontrado");
 	}
 
-	public void salvar(PersonagemDto pDto) {
+	public Personagem salvar(PersonagemDto pDto) {
 		Personagem personagem = new Personagem(pDto.getNome(), pDto.getNivel(), pDto.getVidaMax(), pDto.getRaca(),
 				pDto.getClasse(), pDto.getImg());
 
-		personagemRepository.saveAndFlush(personagem);
+		return personagemRepository.saveAndFlush(personagem);
 	}
 
 	public PersonagemDetalhesDto buscarPorId(Integer id) {
